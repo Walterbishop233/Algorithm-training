@@ -2,6 +2,7 @@
 using namespace std;
 int main(){
 int n(0);
+cin>>"请输入一个整数：">>endl;
 cin>>n;
 cout<<"Hello world!"<<endl;
 cout<<n<<endl;
