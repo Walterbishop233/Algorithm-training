@@ -2,42 +2,50 @@
 //https://leetcode-cn.com/problems/count-of-range-sum/
 class Solution {
 private:
-	int ans;
+	int lower, upper;
 public:
 	int countRangeSum(vector<int>& nums, int lower, int upper) {
-		ans = 0;
-		vector<int>sum(nums.size(), 0);
-		sum[0] = nums[0];
-		for (int i(1); i < nums.size(); i++) {
-			sum[i] = sum[i - 1] + nums[i];
+		this->lower = lower;
+		this->upper = upper;
+		//注意题目数据范围，用long
+		vector<long>sum(nums.size() + 1, 0);
+		for (int i(1); i <= nums.size(); i++) {
+			sum[i] = sum[i - 1] + nums[i - 1];
 		}
-		return mergesort(sum, 0, sum.size() - 1, lower, upper);
+		return mergesort(sum, 0, sum.size() - 1);
 	}
-	int mergesort(vector<int>& sum, int left, int right, int lower, int upper) {
+	int mergesort(vector<long>& sum, int left, int right) {
 		if (left >= right) return 0;
 		int mid = left + (right - left) / 2;
-		ans += mergesort(sum, left, mid, lower, upper);
-		ans += mergesort(sum, mid + 1, right, lower, upper);
+		//ans不是全局变量，这与lc493不同，否则答案会算重
+		int ans(0);
+		ans += mergesort(sum, left, mid);
+		ans += mergesort(sum, mid + 1, right);
 		//calculate
-		ans += calculate(sum, left, mid, right, lower, upper);
+		ans += calculate(sum, left, mid, right);
 		merge(sum, left, mid, right);
 		return ans;
 	}
-	void merge(vector<int>& sum, int left, int mid, int right) {
-		vector<int>temp(right - left + 1);
+	void merge(vector<long>& sum, int left, int mid, int right) {
+		//注意sum数组是long
+		vector<long>temp(right - left + 1);
 		int i(left), j(mid + 1), k(0);
 		for (k = 0; k < temp.size(); k++) {
 			if (j > right || (i <= mid && sum[j] >= sum[i])) temp[k] = sum[i++];
 			else temp[k] = sum[j++];
 		}
-		for (i = left, k = 0; k < temp.size();) sum[i] = temp[k++];
+		for (i = left, k = 0; k < temp.size();) sum[i++] = temp[k++];
 	}
-	int calculate(vector<int>& sum, int left, int mid, int right, int lower, int upper) {
+	int calculate(vector<long>& sum, int left, int mid, int right) {
+		//low，up分别代表lower,upper指针
 		int L = left, low = mid + 1, up = mid + 1, answer(0);
 		while (L <= mid) {
+			//当sum[low] - sum[L]< lower，low指针右移
 			while (low <= right && sum[low] - sum[L] < lower) low++;
+			//当sum[up] - sum[L] <= upper，up指针右移
 			while (up <= right && sum[up] - sum[L] <= upper) up++;
 			L++;
+			//up与low的距离代表一个答案区间
 			answer += up - low;
 		}
 		return answer;
